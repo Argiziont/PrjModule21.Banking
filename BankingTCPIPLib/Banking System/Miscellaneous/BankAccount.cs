@@ -7,12 +7,17 @@ namespace BankingTCPIPLib.Banking_System.Miscellaneous
     public class BankAccount
     {
         public decimal MoneyAmount { get; private set; }
-
         public string UniqueId { get; private set; }
-        public List<BankingTransaction> OperationHistory { get; private set; }
-
+        //public List<BankingTransaction> OperationHistory { get; private set; }
         public bool IsAccountActive { get; private set; }
-
+        public BankAccount() { }
+        public BankAccount(decimal moneyAmount, string uniqueId, List<BankingTransaction> operationHistory, bool isAccountActive)
+        {
+            MoneyAmount = moneyAmount;
+            UniqueId = uniqueId;
+           // OperationHistory = operationHistory;
+            IsAccountActive = isAccountActive;
+        }
 
         /// <summary>
         ///     Adds given amount of money to this account
@@ -65,18 +70,18 @@ namespace BankingTCPIPLib.Banking_System.Miscellaneous
         /// </summary>
         internal void AddOperation(BankingTransaction transaction)
         {
-            OperationHistory ??= new List<BankingTransaction>();
+            //OperationHistory ??= new List<BankingTransaction>();
 
-            OperationHistory.Add(transaction);
+            //OperationHistory.Add(transaction);
         }
 
-        /// <summary>
-        ///     Returns operations of this account
-        /// </summary>
-        public List<BankingTransaction> GetOperationHistory()
-        {
-            return OperationHistory;
-        }
+        ///// <summary>
+        /////     Returns operations of this account
+        ///// </summary>
+        //public List<BankingTransaction> GetOperationHistory()
+        //{
+        //    return OperationHistory;
+        //}
 
         /// <summary>
         ///     Returns money amount on this account

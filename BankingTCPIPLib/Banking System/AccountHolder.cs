@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Text.Json.Serialization;
 using BankingTCPIPLib.Banking_System.Miscellaneous;
 
 namespace BankingTCPIPLib.Banking_System
@@ -7,8 +6,8 @@ namespace BankingTCPIPLib.Banking_System
     [Serializable]
     public class AccountHolder : Human, IEquatable<AccountHolder>
     {
-        [JsonInclude] public BankAccount BankAccount { get; init; }
-        public string Password { get; init; }
+        public BankAccount BankAccount { get; set; }
+        public string Password { get; set; }
 
         public bool Equals(AccountHolder other)
         {

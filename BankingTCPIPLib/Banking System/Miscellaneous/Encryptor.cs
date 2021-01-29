@@ -1,7 +1,7 @@
 ﻿using System.Security.Cryptography;
 using System.Text;
 
-namespace BankingTCPIPLib.Misc
+namespace BankingTCPIPLib.Banking_System.Miscellaneous
 {
     public static class Encryptor
     {
@@ -17,7 +17,7 @@ namespace BankingTCPIPLib.Misc
             //compute hash from the bytes of text  
             md5.ComputeHash(Encoding.ASCII.GetBytes(text));
 
-            //get hash result after compute it  
+            //get hash result after compute it  s
             var result = md5.Hash;
 
             var strBuilder = new StringBuilder();

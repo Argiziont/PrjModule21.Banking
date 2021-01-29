@@ -36,8 +36,6 @@ namespace BankingTCPIPLib.Banking_System.BankingOperations
             }
 
             account.BankAccount.WithdrawMoneyAmountToAccount(money);
-            account.BankAccount.AddOperation(new BankingTransaction
-                {Description = $"Removing {money} from Account", Sender = account, MoneyAmount = money});
         }
     }
 }

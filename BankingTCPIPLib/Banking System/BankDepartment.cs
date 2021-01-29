@@ -9,7 +9,7 @@ namespace BankingTCPIPLib.Banking_System
     public class BankDepartment
     {
         private Random _rng = new();
-        private List<AccountHolder> Accounts { get; set; } = new();
+        public List<AccountHolder> Accounts { get; private set; } = new();
 
         /// <summary>
         ///     Registers this account in banking system
@@ -50,9 +50,9 @@ namespace BankingTCPIPLib.Banking_System
             account.BankAccount.ActivateAccount();
         }
 
-        public List<BankingTransaction> GetAllAccountsHistory()
-        {
-            return Accounts.SelectMany(account => account.BankAccount.OperationHistory).ToList();
-        }
+        //public List<BankingTransaction> GetAllAccountsHistory()
+        //{
+        //    return Accounts.SelectMany(account => account.BankAccount.OperationHistory).ToList();
+        //}
     }
 }

@@ -25,8 +25,8 @@ namespace BankingTCPIPLib.Banking_System.BankingOperations
             }
 
             account.BankAccount.AddMoneyAmountToAccount(money);
-            account.BankAccount.AddOperation(new BankingTransaction
-                {Description = $"Adding {money} to Account", Getter = account, MoneyAmount = money});
+            //account.BankAccount.AddOperation(new BankingTransaction
+            //    {Description = $"Adding {money} to Account", Getter = account, MoneyAmount = money});
         }
     }
 }

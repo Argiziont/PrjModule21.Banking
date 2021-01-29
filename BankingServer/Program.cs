@@ -6,20 +6,18 @@ namespace BankingServer
 {
     internal static class Program
     {
-        private static ServerObject _server;
         private static Thread _listenThread;
 
         private static void Main()
         {
             try
             {
-                _server = new ServerObject();
-                _listenThread = new Thread(_server.Listen);
+                _listenThread = new Thread(ServerObject.Listen);
                 _listenThread.Start();
             }
             catch (Exception ex)
             {
-                _server.Disconnect();
+                ServerObject.Disconnect();
                 Console.WriteLine(ex.Message);
             }
         }

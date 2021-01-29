@@ -1,66 +1,64 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
+using System.Globalization;
 using System.Linq;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
 using System.Threading;
 using BankingTCPIPLib.Banking_System;
-using BankingTCPIPLib.Banking_System.BankingOperations;
-using Newtonsoft.Json;
+using BankingTCPIPLib.Banking_System.Miscellaneous;
 
 namespace BankingTCPIPLib
 {
-    public class ServerObject
+    public static class ServerObject
     {
         private static TcpListener _tcpListener;
-        private readonly List<ClientObject> _clients = new();
-
-        private readonly List<AccountHolder> _users= new();
-        private readonly BankDepartment _bankDepartment = new();
-
-        private static string  _localDb = @"Users.bin";
+        private static readonly List<ClientListener> Clients = new();
+        private static readonly BankingDirector BankingDirector = new();
 
         /// <summary>
         ///     Add new connection
         /// </summary>
-        /// <param name="clientObject">Client to work with</param>
-        public void AddConnection(ClientObject clientObject)
+        /// <param name="clientListener">Client to work with</param>
+        private static void AddConnection(ClientListener clientListener)
         {
-            _clients.Add(clientObject);
+            Clients.Add(clientListener);
         }
 
         /// <summary>
         ///     Delete client from connection
         /// </summary>
         /// <param name="id">Client ID</param>
-        public void RemoveConnection(string id)
+        private static void RemoveConnection(string id)
         {
-            var client = _clients.FirstOrDefault(c => c.Id == id);
+            var client = Clients.FirstOrDefault(c => c.Id == id);
             if (client != null)
-                _clients.Remove(client);
+                Clients.Remove(client);
         }
 
         /// <summary>
         ///     Server listener which checks if someone send message
         /// </summary>
-        public void Listen()
+        public static void Listen()
         {
             try
             {
                 _tcpListener = new TcpListener(IPAddress.Any, 8888);
                 _tcpListener.Start();
-                Console.WriteLine("Server is running. Waiting for connections...");
 
-                ReadUsers();
+                Console.WriteLine("Server is running. Waiting for connections...");
 
                 while (true)
                 {
                     var tcpClient = _tcpListener.AcceptTcpClient();
 
-                    var clientObject = new ClientObject(tcpClient, this);
-                    var clientThread = new Thread(clientObject.Process);
+                    var clientObject = new ClientListener(tcpClient);
+                    AddConnection(clientObject);
+
+                    var clientThread =
+                        new Thread(() =>
+                            ProcessClientMessages(clientObject.Id)); //Start processing client thread
                     clientThread.Start();
                 }
             }
@@ -71,105 +69,163 @@ namespace BankingTCPIPLib
             }
         }
 
-        public void RegisterNewUser(string account, string id)
-        {
-            if (!File.Exists(_localDb))
-                File.Create(_localDb);
-
-            File.AppendAllLines(_localDb,new []{ account });
-            _bankDepartment.RegisterAccount(JsonConvert.DeserializeObject<AccountHolder>(account), id);
-        }
-        public bool LoginUser(string name,string password, string id)
-        {
-            if (!File.Exists(_localDb))
-                File.Create(_localDb);
-
-            if (_users.FindIndex(a => a.Name == name && a.Password == password) == -1)
-                return false;
-
-            _bankDepartment.RegisterAccount(_users.Find(a => a.Name == name && a.Password == password),id);
-            return true;
-        }
-
-        public bool OpenAccount(string id)
-        {
-            try
-            {
-                var account = _users.Find(a => a.BankAccount.UniqueId == id);
-                _bankDepartment.ActivateAccount(account);
-                WriteUsers();
-            }
-            catch
-            {
-                return false;
-            }
-            return true;
-        }
-        public bool MakeDeposit(int amount, string id)
-        {
-            try
-            {
-                DepositOperation deposit = new();
-                var account = _users.Find(a => a.BankAccount.UniqueId == id);
-                deposit.WithdrawalAccrueMoney(account, amount);
-                WriteUsers();
-            }
-            catch
-            {
-                return false;
-            }
-            return true;
-        }
-        public bool WithdrawalFromAccount(int amount, string id)
-        {
-            try
-            {
-                RemovalOperation removal = new();
-                var account = _users.Find(a => a.BankAccount.UniqueId == id);
-                removal.WithdrawalAccrueMoney(account, amount);
-                WriteUsers();
-            }
-            catch
-            {
-                return false;
-            }
-            return true;
-        }
-
-        public decimal GetBalance(string id)
-        {
-            var account = _users.Find(a => a.BankAccount.UniqueId == id);
-            return account?.BankAccount.MoneyAmount ?? throw new OperationCanceledException("Couldn't get money from account");
-        }
-
         /// <summary>
         ///     Close connection for each client end stop server
         /// </summary>
-        public void Disconnect()
+        public static void Disconnect()
         {
             _tcpListener.Stop();
 
-            WriteUsers();
-
-            foreach (var t in _clients)
+            foreach (var t in Clients)
                 t.Close();
 
             Environment.Exit(0);
         }
 
-        private void ReadUsers()
+        private static void RegisterNewUser(string account, string id) 
+            => BankingDirector.RegisterNewUser(account, id);
+
+        private static void LoginUser(string name, string password, string id) 
+            => BankingDirector.LoginUser(name, password, id);
+
+        private static void CreateBankingResponse(BankingResponse response, string id, decimal amount = 0)
         {
-            var lines= File.ReadAllLines(_localDb, Encoding.UTF8);
-            foreach (var user in lines)
+            switch (response)
             {
-                _users.Add(JsonConvert.DeserializeObject<AccountHolder>(user));
+                case BankingResponse.OpenAccount:
+                    try { BankingDirector.OpenAccount(id); }catch (Exception e)
+                    {
+                        Console.WriteLine(e.Message);
+                        SendMessageToStream("Error" + "  " + e.Message, id);
+                        throw;
+                    }  
+                        
+
+                    break;
+                case BankingResponse.MakeDeposit:
+                    try { BankingDirector.MakeDeposit(amount, id); }
+                    catch (Exception e)
+                    {
+                        Console.WriteLine(e.Message);
+                        SendMessageToStream("Error" + "  " + e.Message, id);
+                        throw;
+                    }
+
+                    break;
+                case BankingResponse.WithdrawalFromAccount:
+                    try { BankingDirector.WithdrawalFromAccount(amount, id); }
+                    catch (Exception e)
+                    {
+                        Console.WriteLine(e.Message);
+                        SendMessageToStream("Error" + "  " + e.Message, id);
+                        throw;
+                    }
+
+                    break;
+                case BankingResponse.GetBalance:
+                    try { SendMessageToStream(BankingDirector.GetBalance(id).ToString(CultureInfo.CurrentCulture), id); }
+                    catch (Exception e)
+                    {
+                        Console.WriteLine(e.Message);
+                        SendMessageToStream("Error"+ "  " + e.Message, id);
+                        throw;
+                    }
+
+                    break;
+                default:
+                    var exception= new ArgumentOutOfRangeException(nameof(response), response, "There is no such operation");
+                    Console.WriteLine(exception.Message);
+                    SendMessageToStream("Error" + "  " + exception.Message, id);
+                    throw exception;
+                
             }
         }
 
-        private void WriteUsers()
+        private static void SendMessageToStream(string message, string id)
         {
-            var serializedUsers = _users.Select(JsonConvert.SerializeObject).ToArray();
-            File.WriteAllLines(_localDb,serializedUsers);
+            var data = Encoding.Unicode.GetBytes(message);
+
+            Clients.Find(c => c.Id == id)?
+                .Stream.Write(data, 0, data.Length);
+        }
+
+        /// <summary>
+        ///     Gets message from network stream
+        /// </summary>
+        /// <returns>String representation of byte array</returns>
+        private static string GetMessageFromStream(NetworkStream stream)
+        {
+            var data = new byte[64];
+            var builder = new StringBuilder();
+            do
+            {
+                var bytes = stream.Read(data, 0, data.Length);
+                builder.Append(Encoding.Unicode.GetString(data, 0, bytes));
+            } while (stream.DataAvailable);
+
+            return builder.ToString();
+        }
+
+        /// <summary>
+        ///     Main client function, sends message to server
+        /// </summary>
+        private static void ProcessClientMessages(string id)
+        {
+            try
+            {
+                var stream =
+                    Clients.Find(c => c.Id == id)?.Stream;
+                var message = GetMessageFromStream(stream);
+
+                #region Client login/register
+
+                var splitMessage = message.Split(' ');
+                if (splitMessage[0] == "register")
+                {
+                    try { RegisterNewUser(splitMessage[1], id); }
+                    catch (Exception e)
+                    {
+                        Console.WriteLine(e.Message);
+                        SendMessageToStream("Error" + "  " + e.Message, id);
+                    }
+                }
+
+                if (splitMessage[0] == "enter")
+                {
+                    var password = splitMessage[2];
+                    try { LoginUser(splitMessage[1], password, id); }
+                    catch (Exception e)
+                    {
+                        Console.WriteLine(e.Message);
+                        SendMessageToStream("Error" + "  " + e.Message, id);
+                    }
+
+                }
+
+                #endregion
+
+                while (true)
+                    try
+                    {
+                        splitMessage = GetMessageFromStream(stream).Split(' ');
+
+                        CreateBankingResponse((BankingResponse) Convert.ToInt32(splitMessage[0]), id,
+                            splitMessage.Length > 1 ? Convert.ToDecimal(splitMessage[1]) : 0);
+                    }
+                    catch
+                    {
+                        // ignored
+                    }
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e.Message);
+            }
+            finally
+            {
+                RemoveConnection(id);
+                Clients.Find(c => c.Id == id)?.Stream.Close();
+            }
         }
     }
 }
