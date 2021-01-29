@@ -16,10 +16,6 @@ namespace BankingTCPIPLib.Banking_System
             return other.BankAccount.UniqueId == BankAccount.UniqueId;
         }
 
-        public AccountHolder()
-        {
-            
-        }
         public AccountHolder Copy()
         {
             var transactionAcc = new BankAccount();

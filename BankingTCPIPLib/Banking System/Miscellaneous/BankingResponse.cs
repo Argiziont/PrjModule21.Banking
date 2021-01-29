@@ -2,9 +2,9 @@
 {
     public enum BankingResponse
     {
-        OpenAccount=1,
-        MakeDeposit=2,
-        WithdrawalFromAccount=3,
-        GetBalance=4
+        OpenAccount = 1,
+        MakeDeposit = 2,
+        WithdrawalFromAccount = 3,
+        GetBalance = 4
     }
 }

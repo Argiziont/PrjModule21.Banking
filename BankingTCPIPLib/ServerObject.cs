@@ -82,28 +82,39 @@ namespace BankingTCPIPLib
             Environment.Exit(0);
         }
 
-        private static void RegisterNewUser(string account, string id) 
-            => BankingDirector.RegisterNewUser(account, id);
+        private static void RegisterNewUser(string account, string id)
+        {
+            BankingDirector.RegisterNewUser(account, id);
+        }
 
-        private static void LoginUser(string name, string password, string id) 
-            => BankingDirector.LoginUser(name, password, id);
+        private static void LoginUser(string name, string password, string id)
+        {
+            BankingDirector.LoginUser(name, password, id);
+        }
 
         private static void CreateBankingResponse(BankingResponse response, string id, decimal amount = 0)
         {
             switch (response)
             {
                 case BankingResponse.OpenAccount:
-                    try { BankingDirector.OpenAccount(id); }catch (Exception e)
+                    try
+                    {
+                        BankingDirector.OpenAccount(id);
+                    }
+                    catch (Exception e)
                     {
                         Console.WriteLine(e.Message);
                         SendMessageToStream("Error" + "  " + e.Message, id);
                         throw;
-                    }  
-                        
+                    }
+
 
                     break;
                 case BankingResponse.MakeDeposit:
-                    try { BankingDirector.MakeDeposit(amount, id); }
+                    try
+                    {
+                        BankingDirector.MakeDeposit(amount, id);
+                    }
                     catch (Exception e)
                     {
                         Console.WriteLine(e.Message);
@@ -113,7 +124,10 @@ namespace BankingTCPIPLib
 
                     break;
                 case BankingResponse.WithdrawalFromAccount:
-                    try { BankingDirector.WithdrawalFromAccount(amount, id); }
+                    try
+                    {
+                        BankingDirector.WithdrawalFromAccount(amount, id);
+                    }
                     catch (Exception e)
                     {
                         Console.WriteLine(e.Message);
@@ -123,21 +137,24 @@ namespace BankingTCPIPLib
 
                     break;
                 case BankingResponse.GetBalance:
-                    try { SendMessageToStream(BankingDirector.GetBalance(id).ToString(CultureInfo.CurrentCulture), id); }
+                    try
+                    {
+                        SendMessageToStream(BankingDirector.GetBalance(id).ToString(CultureInfo.CurrentCulture), id);
+                    }
                     catch (Exception e)
                     {
                         Console.WriteLine(e.Message);
-                        SendMessageToStream("Error"+ "  " + e.Message, id);
+                        SendMessageToStream("Error" + "  " + e.Message, id);
                         throw;
                     }
 
                     break;
                 default:
-                    var exception= new ArgumentOutOfRangeException(nameof(response), response, "There is no such operation");
+                    var exception =
+                        new ArgumentOutOfRangeException(nameof(response), response, "There is no such operation");
                     Console.WriteLine(exception.Message);
                     SendMessageToStream("Error" + "  " + exception.Message, id);
                     throw exception;
-                
             }
         }
 
@@ -181,25 +198,28 @@ namespace BankingTCPIPLib
 
                 var splitMessage = message.Split(' ');
                 if (splitMessage[0] == "register")
-                {
-                    try { RegisterNewUser(splitMessage[1], id); }
+                    try
+                    {
+                        RegisterNewUser(splitMessage[1], id);
+                    }
                     catch (Exception e)
                     {
                         Console.WriteLine(e.Message);
                         SendMessageToStream("Error" + "  " + e.Message, id);
                     }
-                }
 
                 if (splitMessage[0] == "enter")
                 {
                     var password = splitMessage[2];
-                    try { LoginUser(splitMessage[1], password, id); }
+                    try
+                    {
+                        LoginUser(splitMessage[1], password, id);
+                    }
                     catch (Exception e)
                     {
                         Console.WriteLine(e.Message);
                         SendMessageToStream("Error" + "  " + e.Message, id);
                     }
-
                 }
 
                 #endregion

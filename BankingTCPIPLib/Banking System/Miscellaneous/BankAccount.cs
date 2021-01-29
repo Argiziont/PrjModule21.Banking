@@ -6,18 +6,25 @@ namespace BankingTCPIPLib.Banking_System.Miscellaneous
     [Serializable]
     public class BankAccount
     {
-        public decimal MoneyAmount { get; private set; }
-        public string UniqueId { get; private set; }
-        //public List<BankingTransaction> OperationHistory { get; private set; }
-        public bool IsAccountActive { get; private set; }
-        public BankAccount() { }
-        public BankAccount(decimal moneyAmount, string uniqueId, List<BankingTransaction> operationHistory, bool isAccountActive)
+        public BankAccount()
+        {
+        }
+
+        public BankAccount(decimal moneyAmount, string uniqueId, List<BankingTransaction> operationHistory,
+            bool isAccountActive)
         {
             MoneyAmount = moneyAmount;
             UniqueId = uniqueId;
-           // OperationHistory = operationHistory;
+            // OperationHistory = operationHistory;
             IsAccountActive = isAccountActive;
         }
+
+        public decimal MoneyAmount { get; private set; }
+
+        public string UniqueId { get; private set; }
+
+        //public List<BankingTransaction> OperationHistory { get; private set; }
+        public bool IsAccountActive { get; private set; }
 
         /// <summary>
         ///     Adds given amount of money to this account
