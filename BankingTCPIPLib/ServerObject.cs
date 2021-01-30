@@ -18,26 +18,6 @@ namespace BankingTCPIPLib
         private static readonly BankingDirector BankingDirector = new();
 
         /// <summary>
-        ///     Add new connection
-        /// </summary>
-        /// <param name="clientListener">Client to work with</param>
-        private static void AddConnection(ClientListener clientListener)
-        {
-            Clients.Add(clientListener);
-        }
-
-        /// <summary>
-        ///     Delete client from connection
-        /// </summary>
-        /// <param name="id">Client ID</param>
-        private static void RemoveConnection(string id)
-        {
-            var client = Clients.FirstOrDefault(c => c.Id == id);
-            if (client != null)
-                Clients.Remove(client);
-        }
-
-        /// <summary>
         ///     Server listener which checks if someone send message
         /// </summary>
         public static void Listen()
@@ -80,6 +60,18 @@ namespace BankingTCPIPLib
                 t.Close();
 
             Environment.Exit(0);
+        }
+        
+        private static void AddConnection(ClientListener clientListener)
+        {
+            Clients.Add(clientListener);
+        }
+
+        private static void RemoveConnection(string id)
+        {
+            var client = Clients.FirstOrDefault(c => c.Id == id);
+            if (client != null)
+                Clients.Remove(client);
         }
 
         private static void RegisterNewUser(string account, string id)
@@ -166,10 +158,6 @@ namespace BankingTCPIPLib
                 .Stream.Write(data, 0, data.Length);
         }
 
-        /// <summary>
-        ///     Gets message from network stream
-        /// </summary>
-        /// <returns>String representation of byte array</returns>
         private static string GetMessageFromStream(NetworkStream stream)
         {
             var data = new byte[64];
@@ -183,9 +171,6 @@ namespace BankingTCPIPLib
             return builder.ToString();
         }
 
-        /// <summary>
-        ///     Main client function, sends message to server
-        /// </summary>
         private static void ProcessClientMessages(string id)
         {
             try

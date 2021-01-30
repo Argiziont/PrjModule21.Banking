@@ -127,8 +127,6 @@ namespace BankingClient
                     Console.ReadLine();
                     Disconnect();
                 }
-
-            // ReSharper disable once FunctionNeverReturns
         }
 
         private static void Disconnect()
