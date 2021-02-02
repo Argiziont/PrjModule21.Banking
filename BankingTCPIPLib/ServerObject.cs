@@ -5,7 +5,7 @@ using System.Linq;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
-using System.Threading;
+using System.Threading.Tasks;
 using BankingTCPIPLib.Banking_System;
 using BankingTCPIPLib.Banking_System.Miscellaneous;
 
@@ -36,10 +36,11 @@ namespace BankingTCPIPLib
                     var clientObject = new ClientListener(tcpClient);
                     AddConnection(clientObject);
 
-                    var clientThread =
-                        new Thread(() =>
-                            ProcessClientMessages(clientObject.Id)); //Start processing client thread
-                    clientThread.Start();
+                    var clientTask =
+                        new Task(() =>
+                                ProcessClientMessages(clientObject.Id),
+                            TaskCreationOptions.LongRunning); //Start processing client thread
+                    clientTask.Start();
                 }
             }
             catch (Exception ex)
@@ -61,7 +62,7 @@ namespace BankingTCPIPLib
 
             Environment.Exit(0);
         }
-        
+
         private static void AddConnection(ClientListener clientListener)
         {
             Clients.Add(clientListener);
@@ -92,6 +93,7 @@ namespace BankingTCPIPLib
                     try
                     {
                         BankingDirector.OpenAccount(id);
+                        SendMessageToStream("Successfully opened account", id);
                     }
                     catch (Exception e)
                     {
@@ -106,6 +108,7 @@ namespace BankingTCPIPLib
                     try
                     {
                         BankingDirector.MakeDeposit(amount, id);
+                        SendMessageToStream($"Successfully deposit {amount}", id);
                     }
                     catch (Exception e)
                     {
@@ -119,6 +122,7 @@ namespace BankingTCPIPLib
                     try
                     {
                         BankingDirector.WithdrawalFromAccount(amount, id);
+                        SendMessageToStream($"Successfully withdrawal {amount}", id);
                     }
                     catch (Exception e)
                     {
@@ -131,7 +135,9 @@ namespace BankingTCPIPLib
                 case BankingResponse.GetBalance:
                     try
                     {
-                        SendMessageToStream(BankingDirector.GetBalance(id).ToString(CultureInfo.CurrentCulture), id);
+                        SendMessageToStream(
+                            "Your balance is: " + BankingDirector.GetBalance(id).ToString(CultureInfo.CurrentCulture),
+                            id);
                     }
                     catch (Exception e)
                     {
@@ -186,6 +192,7 @@ namespace BankingTCPIPLib
                     try
                     {
                         RegisterNewUser(splitMessage[1], id);
+                        SendMessageToStream("Successfully registered", id);
                     }
                     catch (Exception e)
                     {
@@ -199,6 +206,7 @@ namespace BankingTCPIPLib
                     try
                     {
                         LoginUser(splitMessage[1], password, id);
+                        SendMessageToStream("Successfully logged in", id);
                     }
                     catch (Exception e)
                     {

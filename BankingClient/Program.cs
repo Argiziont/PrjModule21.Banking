@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Net.Sockets;
 using System.Text;
-using System.Threading;
+using System.Threading.Tasks;
 using BankingTCPIPLib.Banking_System;
 using BankingTCPIPLib.Banking_System.Miscellaneous;
 using Newtonsoft.Json;
@@ -67,7 +67,7 @@ namespace BankingClient
                 var data = Encoding.Unicode.GetBytes(output);
                 _stream.Write(data, 0, data.Length);
 
-                var receiveThread = new Thread(ReceiveMessage);
+                var receiveThread = new Task(ReceiveMessage, TaskCreationOptions.LongRunning);
 
                 receiveThread.Start();
                 SendMessage();
@@ -126,6 +126,7 @@ namespace BankingClient
                     Console.WriteLine("Connection was suspected!");
                     Console.ReadLine();
                     Disconnect();
+                    return;
                 }
         }
 
