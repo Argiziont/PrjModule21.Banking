@@ -5,16 +5,16 @@ namespace BankingTCPIPLib
 {
     public class ClientListener
     {
-        internal readonly TcpClient TcpClient;
+        private readonly TcpClient _tcpClient;
 
         internal ClientListener(TcpClient tcpTcpClient)
         {
             Id = Guid.NewGuid().ToString();
-            TcpClient = tcpTcpClient;
+            _tcpClient = tcpTcpClient;
         }
 
         internal string Id { get; }
-        internal NetworkStream Stream => TcpClient.GetStream();
+        internal NetworkStream Stream => _tcpClient.GetStream();
 
         /// <summary>
         ///     Close connection for this client
